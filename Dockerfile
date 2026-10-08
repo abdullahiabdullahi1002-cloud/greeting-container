@@ -1,18 +1,17 @@
-FROM python:3.12@sha256:63828510c8b5ccce3bf0d6fabd6f3d17d4effa1ffe690f80a67c8e2d394e03ee
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    gcc \
-    curl \
-    vim
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
 
 WORKDIR /app
 
-COPY . .
+COPY app/requirements.txt .
 
-RUN pip install -r app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN useradd --uid 10001 --no-create-home appuser
+
+COPY app/ ./app/
+
+USER appuser
 
 EXPOSE 8080
 
-# The whole context was copied to /app, so the app package lives in /app/app.
 CMD ["gunicorn", "--chdir", "app", "--bind", "0.0.0.0:8080", "--workers", "2", "app:app"]

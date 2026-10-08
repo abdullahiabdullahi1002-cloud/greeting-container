@@ -1,0 +1,33 @@
+
+name: Build and Push Docker Image to GHCR
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  Build-and-Push:
+
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push Docker image to GHCR
+        env:
+          GHCR_REGISTRY: ghcr.io
+          IMAGE_NAME: greeting-container
+          IMAGE_TAG: v1.0.0
+        run: |
+          docker build --platform linux/amd64 -t $GHCR_REGISTRY/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_TAG .
+          docker push $GHCR_REGISTRY/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_TAG
